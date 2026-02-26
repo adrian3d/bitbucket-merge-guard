@@ -1,0 +1,47 @@
+{
+  "manifest_version": 2,
+  "name": "Bitbucket Merge Guard",
+  "version": "1.0.2",
+  "description": "Protège contre les merges accidentels vers des branches non autorisées dans Bitbucket Cloud",
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "bitbucket-merge-guard@gragoon",
+      "strict_min_version": "58.0",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo"]
+      }
+    }
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "*://bitbucket.org/*",
+    "*://api.bitbucket.org/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://bitbucket.org/*/pull-requests/*"],
+      "js": ["content_scripts/bitbucket.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "scripts": ["background/background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_icon": {
+      "48": "icons/icon.svg"
+    },
+    "default_popup": "popup/popup.html",
+    "default_title": "Bitbucket Merge Guard"
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  }
+}

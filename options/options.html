@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bitbucket Merge Guard — Options</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #F4F5F7;
+      color: #172B4D;
+      margin: 0;
+      padding: 32px 16px;
+    }
+
+    .page { max-width: 720px; margin: 0 auto; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .page-header img { width: 36px; height: 36px; }
+    h1 { font-size: 22px; font-weight: 700; margin: 0; }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(9,30,66,.12);
+    }
+
+    .card-title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+    .card-desc  { font-size: 13px; color: #6B778C; margin: 0 0 18px; line-height: 1.5; }
+
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B778C;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #DFE1E6;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #172B4D;
+      background: #fff;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus {
+      border-color: #0052CC;
+      box-shadow: 0 0 0 2px rgba(0,82,204,.2);
+    }
+    select { cursor: pointer; }
+    select:disabled { background: #F4F5F7; color: #97A0AF; cursor: default; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .12s, opacity .12s;
+      white-space: nowrap;
+    }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn-primary { background: #0052CC; color: #fff; }
+    .btn-primary:not(:disabled):hover { background: #0747A6; }
+    .btn-danger  { background: #DE350B; color: #fff; }
+    .btn-danger:not(:disabled):hover  { background: #BF2600; }
+    .btn-subtle  { background: #F4F5F7; color: #42526E; border-color: #DFE1E6; }
+    .btn-subtle:not(:disabled):hover  { background: #EBECF0; }
+
+    .inline-row { display: flex; gap: 8px; align-items: center; }
+    .inline-row input,
+    .inline-row select { flex: 1; }
+
+    /* Token status badge */
+    .token-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 12px;
+      line-height: 1.4;
+    }
+    .token-status.show { display: flex; }
+    .token-status.ok  { background: #E3FCEF; color: #006644; border: 1px solid #ABF5D1; }
+    .token-status.err { background: #FFEBE6; color: #BF2600; border: 1px solid #FFBDAD; }
+    .token-status-icon { font-size: 18px; flex-shrink: 0; }
+
+    /* Repo list */
+    .repo-item {
+      border: 1px solid #DFE1E6;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .repo-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .repo-name { font-weight: 600; font-size: 14px; font-family: monospace; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 24px; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #DEEBFF;
+      color: #0052CC;
+      border-radius: 12px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tag-remove {
+      background: none; border: none; cursor: pointer;
+      color: #0052CC; font-size: 15px; line-height: 1; padding: 0;
+      display: flex; align-items: center;
+    }
+    .tag-remove:hover { color: #BF2600; }
+
+    /* Dynamic picker */
+    .picker-section {
+      background: #F8F9FA;
+      border: 1px solid #DFE1E6;
+      border-radius: 6px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .picker-title { font-size: 13px; font-weight: 600; color: #42526E; margin: 0 0 14px; }
+
+    .picker-step { margin-bottom: 12px; }
+    .picker-step[hidden] { display: none; }
+
+    /* Search field */
+    .search-field {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .search-field .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px; height: 15px;
+      color: #97A0AF;
+      pointer-events: none;
+      transition: color .15s;
+      flex-shrink: 0;
+    }
+    .search-field input[type="search"] {
+      width: 100%;
+      padding: 7px 36px 7px 32px;
+      border: 1px solid #EBECF0;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #172B4D;
+      background: #F4F5F7;
+      outline: none;
+      transition: background .15s, border-color .15s, box-shadow .15s;
+      /* hide browser's native X button — we show our own count badge */
+      -webkit-appearance: none;
+    }
+    .search-field input[type="search"]:focus {
+      background: #fff;
+      border-color: #0052CC;
+      box-shadow: 0 0 0 2px rgba(0,82,204,.18);
+    }
+    .search-field input[type="search"]:focus ~ .search-icon,
+    .search-field:focus-within .search-icon { color: #0052CC; }
+    .search-field input[type="search"]:disabled {
+      opacity: .5; cursor: default;
+    }
+    .search-count {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #97A0AF;
+      background: #EBECF0;
+      border-radius: 10px;
+      padding: 1px 7px;
+      pointer-events: none;
+      transition: opacity .15s;
+    }
+    .search-count:empty { display: none; }
+
+    /* Branch checkboxes */
+    .branch-picker {
+      border: 1px solid #DFE1E6;
+      border-radius: 6px;
+      max-height: 210px;
+      overflow-y: auto;
+      background: #fff;
+    }
+    .branch-picker-empty {
+      padding: 12px;
+      color: #97A0AF;
+      font-size: 13px;
+      font-style: italic;
+    }
+    .branch-picker label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      cursor: pointer;
+      text-transform: none;
+      font-weight: 400;
+      letter-spacing: 0;
+      font-size: 13px;
+      color: #172B4D;
+      border-bottom: 1px solid #EBECF0;
+    }
+    /* Fix: override display:flex so display:none (set via JS) can win */
+    .branch-picker label[style*="display: none"] { display: none !important; }
+    .branch-picker label:last-child { border-bottom: none; }
+    .branch-picker label:hover { background: #F4F5F7; }
+    .branch-picker input[type="checkbox"] { width: auto; flex-shrink: 0; }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid #DFE1E6;
+      border-top-color: #0052CC;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
+    }
+    .spinner.show { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Manual fallback (collapsible) */
+    details { margin-top: 12px; }
+    summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: #6B778C;
+      padding: 6px 0;
+      user-select: none;
+    }
+    summary:hover { color: #0052CC; }
+    .manual-form { margin-top: 12px; }
+
+    /* Toast */
+    .toast {
+      display: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .toast.show { display: block; }
+    .toast-success { background: #E3FCEF; color: #006644; }
+    .toast-error   { background: #FFEBE6; color: #BF2600; }
+
+    .empty-state { color: #97A0AF; font-size: 13px; font-style: italic; }
+    a { color: #0052CC; }
+    hr { border: none; border-top: 1px solid #EBECF0; margin: 16px 0; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <img src="../icons/icon.svg" alt="">
+    <h1>Bitbucket Merge Guard</h1>
+  </div>
+
+  <!-- ── Authentication ───────────────────────────────────────────────────── -->
+  <div class="card">
+    <p class="card-title">Authentification Bitbucket (API Token)</p>
+    <p class="card-desc">
+      Crée un API token dans
+      <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">
+        Bitbucket → Paramètres → API tokens
+      </a>
+      avec le scope <strong>Pull requests: Read</strong>, <strong>Repositories: Read</strong>, <strong>User:Read</strong> et <strong>Workspace:Read</strong>.
+    </p>
+
+    <div class="field">
+      <label>Email du compte Atlassian</label>
+      <input type="text" id="bbEmail" placeholder="toi@example.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>API Token</label>
+      <input type="password" id="bbApiToken" placeholder="••••••••••••••••" autocomplete="current-password">
+    </div>
+
+    <div class="inline-row" style="flex-wrap:wrap;gap:8px">
+      <button class="btn btn-primary" id="saveAuth">Sauvegarder</button>
+      <button class="btn btn-subtle"  id="testAuth">
+        <span class="spinner" id="testSpinner"></span>
+        Tester la connexion
+      </button>
+    </div>
+
+    <div class="token-status" id="tokenStatus">
+      <span class="token-status-icon" id="tokenStatusIcon"></span>
+      <span id="tokenStatusText"></span>
+    </div>
+
+    <div class="toast" id="authToast"></div>
+  </div>
+
+  <!-- ── Repo Rules ────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <p class="card-title">Branches autorisées par repository</p>
+    <p class="card-desc">
+      Une confirmation sera demandée avant le merge si la branche de destination
+      n'est pas dans cette liste.<br>
+      Sans règle configurée pour un repo, toutes les branches sont autorisées.
+    </p>
+
+    <div id="repoList"></div>
+
+    <!-- ── Dynamic picker ── -->
+    <div class="picker-section">
+      <p class="picker-title">Ajouter depuis Bitbucket</p>
+
+      <!-- Step 1: Workspace -->
+      <div class="picker-step" id="stepWorkspace">
+        <label>Workspace</label>
+        <div class="inline-row">
+          <select id="wsSelect" disabled>
+            <option value="">— Sélectionner un workspace —</option>
+          </select>
+          <button class="btn btn-subtle" id="loadWsBtn">
+            <span class="spinner" id="wsSpinner"></span>
+            Charger
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Repository -->
+      <div class="picker-step" id="stepRepo" hidden>
+        <label>Repository</label>
+        <div class="search-field">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input type="search" id="repoSearch" placeholder="Filtrer les repositories…" disabled>
+        </div>
+        <div class="inline-row">
+          <select id="repoSelect">
+            <option value="">— Sélectionner un repository —</option>
+          </select>
+          <span class="spinner" id="repoSpinner"></span>
+        </div>
+      </div>
+
+      <!-- Step 3: Branches -->
+      <div class="picker-step" id="stepBranches" hidden>
+        <label style="margin-bottom:8px">
+          Branches autorisées
+          <span style="text-transform:none;font-weight:400;letter-spacing:0">
+            — cocher les branches vers lesquelles le merge est OK
+          </span>
+        </label>
+        <div class="search-field">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input type="search" id="branchSearch" placeholder="Filtrer les branches…" disabled>
+          <span class="search-count" id="branchCount"></span>
+        </div>
+        <div class="branch-picker" id="branchPicker">
+          <span class="spinner" id="branchSpinner" style="margin:12px auto;display:block;width:20px;height:20px"></span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="addRepoDynamic" hidden style="margin-top:12px">
+        Ajouter le repository
+      </button>
+    </div>
+
+    <!-- ── Manual fallback ── -->
+    <details>
+      <summary>Saisie manuelle</summary>
+      <div class="manual-form">
+        <div class="field">
+          <label>Repository <span style="text-transform:none;font-weight:400">(workspace/repo-slug)</span></label>
+          <input type="text" id="newRepo" placeholder="monworkspace/mon-repo">
+        </div>
+        <div class="field">
+          <label>Branches <span style="text-transform:none;font-weight:400">(séparées par des virgules)</span></label>
+          <input type="text" id="newBranches" placeholder="main, develop, release/v2">
+        </div>
+        <button class="btn btn-subtle" id="addRepoManual">Ajouter</button>
+      </div>
+    </details>
+
+    <div class="toast" id="rulesToast"></div>
+  </div>
+
+</div>
+<script src="options.js"></script>
+</body>
+</html>
